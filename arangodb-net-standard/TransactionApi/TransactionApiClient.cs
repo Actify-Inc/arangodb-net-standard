@@ -51,11 +51,21 @@ namespace ArangoDBNetStandard.TransactionApi
         /// </remarks>
         /// <typeparam name="T">Type to use for deserializing the object returned by the transaction function.</typeparam>
         /// <param name="body">Object containing information to submit in the POST transaction request.</param>
+        /// <param name="serializationOptions">Optional serialization options.</param>
         /// <returns>Response from ArangoDB after processing the request.</returns>
         public virtual async Task<PostTransactionResponse<T>> PostTransactionAsync<T>(
-            PostTransactionBody body)
+            PostTransactionBody body,
+            ApiClientSerializationOptions serializationOptions = null)
         {
-            var content = GetContent(body, new ApiClientSerializationOptions(true, true));
+            // Set default serialization options if not passed in
+            serializationOptions = serializationOptions ??
+                new ApiClientSerializationOptions(
+                     useCamelCasePropertyNames: true,
+                     ignoreNullValues: true,
+                     useStringEnumConversion: true,
+                     useSpecialDictionaryHandling: true);
+
+            var content = GetContent(body, serializationOptions);
             using (var response = await _client.PostAsync(_transactionApiPath, content))
             {
                 var stream = await response.Content.ReadAsStreamAsync();

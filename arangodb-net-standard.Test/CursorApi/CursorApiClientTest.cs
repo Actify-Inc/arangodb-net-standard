@@ -11,6 +11,7 @@ using ArangoDBNetStandard.Serialization;
 using ArangoDBNetStandard.Transport;
 using Moq;
 using Xunit;
+using Newtonsoft.Json.Linq;
 
 namespace ArangoDBNetStandardTest.CursorApi
 {
@@ -18,9 +19,33 @@ namespace ArangoDBNetStandardTest.CursorApi
     {
         private CursorApiClient _cursorApi;
 
+        /// <summary>
+        /// Class used for test purposes.
+        /// </summary>
         public class MyModel
         {
             public string MyProperty { get; set; }
+        }
+
+        /// <summary>
+        /// Class used for Serialization test.
+        /// </summary>
+        public class SerializationTestProperties
+        {
+            public string PascalCaseProperty { get; set; }
+
+            public object NullProperty { get; set; }
+
+            public string EnumProperty { get; set; }
+        }
+
+        /// <summary>
+        /// Enum values used for test purposes.
+        /// </summary>
+        public enum Animal
+        {
+            Hare = 0,
+            Tortoise
         }
 
         public CursorApiClientTest(CursorApiClientTestFixture fixture)
@@ -38,6 +63,30 @@ namespace ArangoDBNetStandardTest.CursorApi
             var result = response.Result;
             Assert.Single(result);
             Assert.Equal("This is a robbery", result.First().MyProperty);
+        }
+
+        [Fact]
+        public async Task PostCursorAsync_ShouldSucceed_WhenUsingDefaultSerializationOptions()
+        {
+            var response = await _cursorApi.PostCursorAsync<SerializationTestProperties>(
+                @"RETURN { 
+                    PascalCaseProperty: @PascalCaseProperty,
+                    NullProperty: @nullProperty,
+                    EnumProperty: @enumProperty
+                }",
+                new Dictionary<string, object> { 
+                    ["PascalCaseProperty"] = "Blaise Pascal was a French mathematician",
+                    ["nullProperty"] = null,
+                    ["enumProperty"] = Animal.Tortoise
+                });
+
+            var result = response.Result;
+            Assert.Single(result);
+
+            var document = response.Result.First();
+            Assert.Equal("Blaise Pascal was a French mathematician", document.PascalCaseProperty);
+            Assert.Null(document.NullProperty);
+            Assert.Equal("Tortoise", document.EnumProperty);
         }
 
         [Fact]

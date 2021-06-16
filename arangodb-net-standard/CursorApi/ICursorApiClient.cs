@@ -22,6 +22,7 @@ namespace ArangoDBNetStandard.CursorApi
         /// <param name="cache"></param>
         /// <param name="memoryLimit"></param>
         /// <param name="ttl"></param>
+        /// <param name="serializationOptions">Optional serialization options</param>
         /// <returns></returns>
         Task<CursorResponse<T>> PostCursorAsync<T>(
                 string query,
@@ -31,15 +32,18 @@ namespace ArangoDBNetStandard.CursorApi
                 long? batchSize = null,
                 bool? cache = null,
                 long? memoryLimit = null,
-                int? ttl = null);
+                int? ttl = null,
+                ApiClientSerializationOptions serializationOptions = null);
 
         /// <summary>
         /// Execute an AQL query, creating a cursor which can be used to page query results.
         /// </summary>
         /// <param name="postCursorBody">Object encapsulating options and parameters of the query.</param>
+        /// <param name="serializationOptions">Optional serialization options.</param>
         /// <returns></returns>
         Task<CursorResponse<T>> PostCursorAsync<T>(
-            PostCursorBody postCursorBody);
+            PostCursorBody postCursorBody,
+            ApiClientSerializationOptions serializationOptions = null);
 
         /// <summary>
         /// Deletes an existing cursor and frees the resources associated with it.

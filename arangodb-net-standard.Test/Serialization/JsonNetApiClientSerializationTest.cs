@@ -93,7 +93,13 @@ namespace ArangoDBNetStandardTest.Serialization
             };
             var serialization = new JsonNetApiClientSerialization();
 
-            byte[] jsonBytes = serialization.Serialize(body, new ApiClientSerializationOptions(true, true));
+            byte[] jsonBytes = serialization.Serialize(
+                body,
+                new ApiClientSerializationOptions(
+                     useCamelCasePropertyNames: true,
+                     ignoreNullValues: true,
+                     useStringEnumConversion: false,
+                     useSpecialDictionaryHandling: true));
 
             string jsonString = Encoding.UTF8.GetString(jsonBytes);
 
@@ -116,7 +122,13 @@ namespace ArangoDBNetStandardTest.Serialization
 
             var serialization = new JsonNetApiClientSerialization();
 
-            byte[] jsonBytes = serialization.Serialize(body, new ApiClientSerializationOptions(true, true));
+            byte[] jsonBytes = serialization.Serialize(
+                body,
+                new ApiClientSerializationOptions(
+                     useCamelCasePropertyNames: true,
+                     ignoreNullValues: true,
+                     useStringEnumConversion: false,
+                     useSpecialDictionaryHandling: true));
 
             string jsonString = Encoding.UTF8.GetString(jsonBytes);
 
@@ -139,7 +151,12 @@ namespace ArangoDBNetStandardTest.Serialization
             };
             var serialization = new JsonNetApiClientSerialization();
 
-            byte[] jsonBytes = serialization.Serialize(body, new ApiClientSerializationOptions(true, true));
+            byte[] jsonBytes = serialization.Serialize(body, 
+                new ApiClientSerializationOptions(
+                     useCamelCasePropertyNames: true,
+                     ignoreNullValues: true,
+                     useStringEnumConversion: false,
+                     useSpecialDictionaryHandling: true));
 
             string jsonString = Encoding.UTF8.GetString(jsonBytes);
 
@@ -160,7 +177,12 @@ namespace ArangoDBNetStandardTest.Serialization
 
             var serialization = new JsonNetApiClientSerialization();
 
-            byte[] jsonBytes = serialization.Serialize(body, new ApiClientSerializationOptions(true, true));
+            byte[] jsonBytes = serialization.Serialize(body,
+                new ApiClientSerializationOptions(
+                     useCamelCasePropertyNames: true,
+                     ignoreNullValues: true,
+                     useStringEnumConversion: false,
+                     useSpecialDictionaryHandling: true));
 
             string jsonString = Encoding.UTF8.GetString(jsonBytes);
 

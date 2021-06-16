@@ -55,7 +55,9 @@ namespace ArangoDBNetStandard.Serialization
 
             var jsonSettings = new JsonSerializerSettings
             {
-                NullValueHandling = serializationOptions.IgnoreNullValues ? NullValueHandling.Ignore : NullValueHandling.Include
+                NullValueHandling = serializationOptions.IgnoreNullValues ?
+                    NullValueHandling.Ignore :
+                    NullValueHandling.Include
             };
 
             if (serializationOptions.UseStringEnumConversion)
@@ -66,7 +68,13 @@ namespace ArangoDBNetStandard.Serialization
 
             if (serializationOptions.UseCamelCasePropertyNames)
             {
-                jsonSettings.ContractResolver = new CamelCasePropertyNamesExceptDictionaryContractResolver();
+                jsonSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+            }
+
+            if (serializationOptions.UseSpecialDictionaryHandling)
+            {
+                var dictionaryValueConverter = new DictionaryValueConverter(serializationOptions.UseStringEnumConversion);
+                jsonSettings.Converters.Add(dictionaryValueConverter);
             }
 
             string json = JsonConvert.SerializeObject(item, jsonSettings);

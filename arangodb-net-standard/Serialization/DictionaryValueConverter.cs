@@ -1,5 +1,7 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using System;
+using System.Collections;
 
 namespace ArangoDBNetStandard.Serialization
 {
@@ -9,14 +11,13 @@ namespace ArangoDBNetStandard.Serialization
     /// </summary>
     public class DictionaryValueConverter : JsonConverter
     {
-        private static JsonSerializer _serializer = new JsonSerializer
-        {
-            NullValueHandling = NullValueHandling.Include
-        };
+        private JsonSerializer _serializer;
+
+        private bool _useStringEnumConversion;
 
         public override bool CanConvert(Type objectType)
         {
-            return true;
+            return typeof(IDictionary).IsAssignableFrom(objectType);
         }
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
@@ -28,6 +29,19 @@ namespace ArangoDBNetStandard.Serialization
         {
             // Use our local serializer for writing instead of the passed-in serializer
             _serializer.Serialize(writer, value);
+        }
+
+        public DictionaryValueConverter(bool useStringEnumConversion)
+        {
+            _serializer = new JsonSerializer
+            {
+                NullValueHandling = NullValueHandling.Include
+            };
+
+            if (useStringEnumConversion)
+            {
+                _serializer.Converters.Add(new StringEnumConverter());
+            }
         }
     }
 
