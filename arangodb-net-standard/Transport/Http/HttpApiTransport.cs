@@ -18,26 +18,18 @@ namespace ArangoDBNetStandard.Transport.Http
     /// </remarks>
     public class HttpApiTransport : IApiClientTransport
     {
-        private readonly HttpClient _client;
-        private HttpContentType _contentType;
-
-        private static readonly Dictionary<HttpContentType, string> _contentTypeMap =
-            new Dictionary<HttpContentType, string>
-            {
-                [HttpContentType.Json] = "application/json",
-                [HttpContentType.VPack] = "application/x-velocypack"
-            };
+        private readonly HttpClientConfig _clientConfig;
 
         /// <summary>
-        /// Create <see cref="HttpApiTransport"/> from an existing <see cref="HttpClient"/> instance.
+        /// Create <see cref="HttpApiTransport"/> from an existing <see cref="HttpClientConfig"/> instance.
         /// </summary>
-        /// <param name="client">Existing HTTP client instance.</param>
+        /// <param name="clientConfig">Existing HTTP client configuration instance.</param>
         /// <param name="contentType">Content type to use in requests.
         /// Used to set Content-Type and Accept HTTP headers.</param>
-        public HttpApiTransport(HttpClient client, HttpContentType contentType)
+        public HttpApiTransport(HttpClientConfig clientConfig, HttpContentType contentType)
         {
-            _client = client;
-            _contentType = contentType;
+            _clientConfig = clientConfig;
+            _clientConfig.UseContentType(contentType);
         }
 
         /// <summary>
@@ -54,7 +46,7 @@ namespace ArangoDBNetStandard.Transport.Http
             string dbName,
             HttpContentType contentType = HttpContentType.Json)
         {
-            var client = new HttpClient();
+            var client = new HttpClientConfig();
             client.BaseAddress = new Uri(hostUri.AbsoluteUri + "_db/" + dbName + "/");
 
             var transport = new HttpApiTransport(client, contentType);
@@ -79,7 +71,7 @@ namespace ArangoDBNetStandard.Transport.Http
             string password,
             HttpContentType contentType = HttpContentType.Json)
         {
-            var client = new HttpClient();
+            var client = new HttpClientConfig();
             client.BaseAddress = new Uri(hostUri.AbsoluteUri + "_db/" + dbName + "/");
 
             var transport = new HttpApiTransport(client, contentType);
@@ -105,7 +97,7 @@ namespace ArangoDBNetStandard.Transport.Http
             string jwtToken,
             HttpContentType contentType = HttpContentType.Json)
         {
-            var client = new HttpClient();
+            var client = new HttpClientConfig();
             client.BaseAddress = new Uri(hostUri.AbsoluteUri + "_db/" + dbName + "/");
 
             var transport = new HttpApiTransport(client, contentType);
@@ -120,10 +112,7 @@ namespace ArangoDBNetStandard.Transport.Http
         /// </summary>
         public void UseJsonContentType()
         {
-            _contentType = HttpContentType.Json;
-            _client.DefaultRequestHeaders.Accept.Clear();
-            _client.DefaultRequestHeaders.Accept.Add(
-                new MediaTypeWithQualityHeaderValue(_contentTypeMap[_contentType]));
+            _clientConfig.UseContentType(HttpContentType.Json);
         }
 
         /// <summary>
@@ -132,10 +121,7 @@ namespace ArangoDBNetStandard.Transport.Http
         /// </summary>
         public void UseVPackContentType()
         {
-            _contentType = HttpContentType.VPack;
-            _client.DefaultRequestHeaders.Accept.Clear();
-            _client.DefaultRequestHeaders.Accept.Add(
-                new MediaTypeWithQualityHeaderValue(_contentTypeMap[_contentType]));
+            _clientConfig.UseContentType(HttpContentType.VPack);
         }
 
         /// <summary>
@@ -146,10 +132,7 @@ namespace ArangoDBNetStandard.Transport.Http
         /// <param name="password"></param>
         public void SetBasicAuth(string username, string password)
         {
-            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
-                "Basic",
-                Convert.ToBase64String(
-                    Encoding.ASCII.GetBytes($"{username}:{password}")));
+            _clientConfig.SetBasicAuth(username, password);
         }
 
         /// <summary>
@@ -159,9 +142,7 @@ namespace ArangoDBNetStandard.Transport.Http
         /// <param name="jwt"></param>
         public void SetJwtToken(string jwt)
         {
-            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
-                   "bearer",
-                   jwt);
+            _clientConfig.SetJwtToken(jwt);
         }
 
         /// <summary>
@@ -171,7 +152,7 @@ namespace ArangoDBNetStandard.Transport.Http
         /// <returns></returns>
         public async Task<IApiClientResponse> DeleteAsync(string requestUri)
         {
-            var response = await _client.DeleteAsync(requestUri);
+            var response = await _clientConfig.Build().DeleteAsync(requestUri);
             return new HttpApiClientResponse(response);
         }
 
@@ -187,8 +168,8 @@ namespace ArangoDBNetStandard.Transport.Http
             {
                 Content = new ByteArrayContent(content)
             };
-            request.Content.Headers.ContentType = new MediaTypeHeaderValue(_contentTypeMap[_contentType]);
-            var response = await _client.SendAsync(request);
+            request.Content.Headers.ContentType = _clientConfig.ContentType;
+            var response = await _clientConfig.Build().SendAsync(request);
             return new HttpApiClientResponse(response);
         }
 
@@ -201,8 +182,8 @@ namespace ArangoDBNetStandard.Transport.Http
         public async Task<IApiClientResponse> PostAsync(string requestUri, byte[] content)
         {
             var httpContent = new ByteArrayContent(content);
-            httpContent.Headers.ContentType = new MediaTypeHeaderValue(_contentTypeMap[_contentType]);
-            var response = await _client.PostAsync(requestUri, httpContent);
+            httpContent.Headers.ContentType = _clientConfig.ContentType;
+            var response = await _clientConfig.Build().PostAsync(requestUri, httpContent);
             return new HttpApiClientResponse(response);
         }
 
@@ -215,8 +196,8 @@ namespace ArangoDBNetStandard.Transport.Http
         public async Task<IApiClientResponse> PutAsync(string requestUri, byte[] content)
         {
             var httpContent = new ByteArrayContent(content);
-            httpContent.Headers.ContentType = new MediaTypeHeaderValue(_contentTypeMap[_contentType]);
-            var response = await _client.PutAsync(requestUri, httpContent);
+            httpContent.Headers.ContentType = _clientConfig.ContentType;
+            var response = await _clientConfig.Build().PutAsync(requestUri, httpContent);
             return new HttpApiClientResponse(response);
         }
 
@@ -227,7 +208,7 @@ namespace ArangoDBNetStandard.Transport.Http
         /// <returns></returns>
         public async Task<IApiClientResponse> GetAsync(string requestUri)
         {
-            var response = await _client.GetAsync(requestUri);
+            var response = await _clientConfig.Build().GetAsync(requestUri);
             return new HttpApiClientResponse(response);
         }
 
@@ -244,8 +225,8 @@ namespace ArangoDBNetStandard.Transport.Http
             {
                 Content = new ByteArrayContent(content)
             };
-            request.Content.Headers.ContentType = new MediaTypeHeaderValue(_contentTypeMap[_contentType]);
-            var response = await _client.SendAsync(request);
+            request.Content.Headers.ContentType = _clientConfig.ContentType;
+            var response = await _clientConfig.Build().SendAsync(request);
             return new HttpApiClientResponse(response);
         }
 
@@ -268,16 +249,15 @@ namespace ArangoDBNetStandard.Transport.Http
                     request.Headers.Add(key, webHeaderCollection[key]);
                 }
             }
-            var response = await _client.SendAsync(request);
+            var response = await _clientConfig.Build().SendAsync(request);
             return new HttpApiClientResponse(response);
         }
 
         /// <summary>
-        /// Disposes the underlying <see cref="HttpClient"/> instance.
+        /// The HttpClient in use is now shared, no disposing of it is needed.
         /// </summary>
         public void Dispose()
         {
-            _client.Dispose();
         }
     }
 }
